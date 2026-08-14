@@ -1,0 +1,55 @@
+cat > .devcontainer/post-create.sh << 'EOF'
+#!/bin/bash
+
+# Instalar Composer
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+sudo chmod +x /usr/local/bin/composer
+
+# Instalar Laravel via Composer
+composer global require laravel/installer
+
+# Adicionar Composer global ao PATH
+export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+
+# Criar projeto Laravel (se não existir)
+if [ ! -f "artisan" ]; then
+    composer create-project laravel/laravel .
+fi
+
+# Configurar permissões
+sudo chmod -R 777 storage bootstrap/cache
+
+# Instalar dependências NPM (se existir package.json)
+if [ -f "package.json" ]; then
+    npm install
+fi
+
+# Criar arquivo .env
+if [ ! -f ".env" ]; then
+    cp .env.example .env
+    php artisan key:generate
+fi
+
+# Configurar banco de dados no .env
+sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/' .env
+sed -i 's/DB_PORT=3306/DB_PORT=3306/' .env
+sed -i 's/DB_DATABASE=laravel/DB_DATABASE=laravel/' .env
+sed -i 's/DB_USERNAME=root/DB_USERNAME=root/' .env
+sed -i 's/DB_PASSWORD=/DB_PASSWORD=root/' .env
+
+# Aguardar MySQL iniciar
+echo "Aguardando MySQL iniciar..."
+sleep 10
+
+# Criar banco de dados se não existir
+mysql -h localhost -u root -proot -e "CREATE DATABASE IF NOT EXISTS laravel;"
+
+# Executar migrations
+php artisan migrate
+
+echo "Ambiente configurado com sucesso!"
+EOF
+
+# Tornar executável
+chmod +x .devcontainer/post-create.sh
