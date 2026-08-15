@@ -1,12 +1,43 @@
 {
-  "name": "PHP Laravel e MySQL",
-  "image": "://microsoft.com",
+  "name": "Laravel Development",
+  "image": "ubuntu:22.04",
   "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/php:1": {
+      "version": "8.2",
+      "extensions": ["mbstring", "pdo_mysql", "bcmath", "curl", "xml", "zip", "openssl", "tokenizer"]
+    },
+    "ghcr.io/devcontainers/features/mysql:1": {
+      "version": "latest"
+    },
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "onecentlin.laravel-extension-pack",
+        "PKief.material-icon-theme",
+        "xdebug.php-debug"
+      ],
+      "settings": {
+        "php.validate.enable": true,
+        "php.validate.executablePath": "/usr/bin/php"
+      }
     }
   },
-  "forwardPorts":[8000, 5173],
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y mysql-server && sudo service mysql start",
-  "remoteUser": "vscode"
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [8000, 3306],
+  "remoteUser": "vscode",
+  "containerUser": "vscode"
 }
