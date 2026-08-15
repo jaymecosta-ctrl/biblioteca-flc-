@@ -32,4 +32,3 @@
   "forwardPorts": [8000, 8080, 3306],
   "remoteUser": "codespace"
 }
-EOF
