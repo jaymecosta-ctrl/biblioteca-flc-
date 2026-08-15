@@ -1,55 +1,39 @@
-cat > .devcontainer/post-create.sh << 'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
+set -eux
 
-# Instalar Composer
-curl -sS https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
-sudo chmod +x /usr/local/bin/composer
+if ! command -v composer >/dev/null 2>&1; then
+  curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+fi
 
-# Instalar Laravel via Composer
-composer global require laravel/installer
-
-# Adicionar Composer global ao PATH
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 
-# Criar projeto Laravel (se não existir)
+if ! composer --version >/dev/null 2>&1; then
+  echo "Composer não está disponível após a instalação." >&2
+  exit 1
+fi
+
+composer global require laravel/installer
+
 if [ ! -f "artisan" ]; then
-    composer create-project laravel/laravel .
+  composer create-project laravel/laravel .
 fi
 
-# Configurar permissões
-sudo chmod -R 777 storage bootstrap/cache
-
-# Instalar dependências NPM (se existir package.json)
-if [ -f "package.json" ]; then
-    npm install
-fi
-
-# Criar arquivo .env
 if [ ! -f ".env" ]; then
-    cp .env.example .env
-    php artisan key:generate
+  cp .env.example .env
 fi
 
-# Configurar banco de dados no .env
-sed -i 's/DB_HOST=127.0.0.1/DB_HOST=localhost/' .env
-sed -i 's/DB_PORT=3306/DB_PORT=3306/' .env
-sed -i 's/DB_DATABASE=laravel/DB_DATABASE=laravel/' .env
-sed -i 's/DB_USERNAME=root/DB_USERNAME=root/' .env
-sed -i 's/DB_PASSWORD=/DB_PASSWORD=root/' .env
+php artisan key:generate --force || true
 
-# Aguardar MySQL iniciar
-echo "Aguardando MySQL iniciar..."
-sleep 10
+sed -i 's|DB_HOST=127.0.0.1|DB_HOST=127.0.0.1|g' .env
+sed -i 's|DB_PORT=3306|DB_PORT=3306|g' .env
+sed -i 's|DB_DATABASE=laravel|DB_DATABASE=laravel|g' .env
+sed -i 's|DB_USERNAME=root|DB_USERNAME=root|g' .env
+sed -i 's|DB_PASSWORD=|DB_PASSWORD=root|g' .env
 
-# Criar banco de dados se não existir
-mysql -h localhost -u root -proot -e "CREATE DATABASE IF NOT EXISTS laravel;"
+if command -v mysql >/dev/null 2>&1; then
+  mysql --host=127.0.0.1 --user=root --password=root -e "CREATE DATABASE IF NOT EXISTS laravel;" || true
+fi
 
-# Executar migrations
-php artisan migrate
+php artisan migrate --force || true
 
 echo "Ambiente configurado com sucesso!"
-EOF
-
-# Tornar executável
-chmod +x .devcontainer/post-create.sh
