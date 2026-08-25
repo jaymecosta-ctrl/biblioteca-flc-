@@ -355,3 +355,34 @@ php artisan serve
 **Data**: 2026-08-15
 **Próxima ação**: Rebuild do container
 
+---
+
+## 📝 Registro da verificação - 2026-08-25
+
+O comando `docker` não está disponível neste Dev Container (`docker: command not found`).
+Por isso, a aplicação foi configurada para usar SQLite localmente:
+
+- `DB_CONNECTION=sqlite` no arquivo `app/.env`
+- Arquivo criado em `app/database/database.sqlite`
+- Extensão PHP `pdo_sqlite` disponível
+- Cache de configuração limpo com `php artisan config:clear`
+
+Comando executado com sucesso:
+
+```bash
+cd app
+php artisan migrate:status
+```
+
+Resultado:
+
+- Migrações de usuários, cache e jobs: executadas
+- Migração `2026_08_25_124125_create_itens_table`: pendente
+
+Para aplicar a migração pendente:
+
+```bash
+cd app
+php artisan migrate
+```
+
